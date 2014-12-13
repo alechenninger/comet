@@ -1,3 +1,5 @@
-# shelf_test
+# comet
 
-A minimal web server using [Shelf](https://pub.dartlang.org/packages/shelf).
+An WebSocket based, IRC web application with guaranteed delivery.
+
+That's the idea anyway :).

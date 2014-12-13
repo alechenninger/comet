@@ -16,8 +16,9 @@ void main(List<String> args) {
 
   var host = results['host'];
   var port = int.parse(results['port'], onError: logParseErrorAndQuit);
+  var sessionManager = new SessionManager();
 
-  new CometHttp(host, port).serve();
+  new CometHttp(host, port, sessionManager).serve();
 }
 
 logParseErrorAndQuit(val) {

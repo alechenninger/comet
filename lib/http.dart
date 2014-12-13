@@ -3,10 +3,12 @@ part of comet;
 class CometHttp {
   final _address;
   final _port;
+  final _sessionManager;
 
   /// [_address] follows the semantics of [HttpServer.bind], which is to say it
   /// may either be a [String] or an [InternetAddress].
-  CometHttp(dynamic this._address, int this._port);
+  CometHttp(dynamic this._address, int this._port,
+      SessionManager this._sessionManager);
 
   Future<HttpServer> serve() {
     return shelf_io.serve(_handler, _address, _port).then((server) {
@@ -24,5 +26,6 @@ class CometHttp {
   get _static =>
       createStaticHandler("build/web", defaultDocument: "index.html");
 
-  get _ws => webSocketHandler((socket) => new CometSocket(socket));
+  get _ws =>
+      webSocketHandler((socket) => new CometSocket(socket, _sessionManager));
 }

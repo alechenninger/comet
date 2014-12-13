@@ -1,35 +1,17 @@
 part of comet;
 
 class CometSocket {
-  /// Makes new irc clients
-  final ClientFactory _clientFactory;
-
   /// The websocket associated with the user
   final WebSocket _socket;
+  final SessionManager _sessionManager;
 
-  /// Create a new [CometSocket] for the given [WebSocket]. Optionally a
-  /// [clientFactory] may be passed which accepts an [IrcConfig] and returns a
-  /// new [Client]. By default this uses a real [Client], but maybe overriden
-  /// for testing.
-  CometSocket(this._socket, {ClientFactory clientFactory}):
-    _clientFactory = clientFactory == null
-        ? defaultClientFactory
-        : clientFactory {
-      _registerSocketEventHandlers();
-    }
+  /// Create a new [CometSocket] for the given [WebSocket].
+  CometSocket(this._socket, this._sessionManager);
 
   void _registerSocketEventHandlers() {
     // Set on connection event
-    Client client;
-
-    /// Precondition before processing most events. Pass [msg] for inclusion
-    /// in potential [StateError] when [client] is still null.
-    void ensureClient(msg) {
-      if (client == null) {
-        throw new StateError(
-            "Must connect to client first. Message was ${msg}.");
-      }
-    }
+    Session session;
+    String user;
 
     _socket.listen((data) {
       var msg = new Message.fromJson(data);
@@ -38,18 +20,15 @@ class CometSocket {
       switch (msg.type) {
         case MessageType.connect:
           var config = new IrcConfig.fromMap(msg.body);
-          client = _clientFactory(config);
+          session = _sessionManager.newSession(config, user);
 
-          client.connect();
-          _registerIrcEventHandlers(client);
+          session.listen((msg) => _socket.add(JSON.encode(msg)));
 
           break;
         case MessageType.send:
-          ensureClient(msg);
-
           var sendMsg = new SendMessage.fromMap(msg.body);
 
-          client.sendMessage(sendMsg.target, sendMsg.message);
+          session.sendMessage(sendMsg);
 
           break;
         default:
@@ -57,16 +36,4 @@ class CometSocket {
       }
     });
   }
-
-  void _registerIrcEventHandlers(Client client) {
-    client.register((MessageEvent event) {
-      _socket.add(JSON.encode(
-          new ReceiveMessage(event.from, event.target, event.message)));
-    });
-  }
 }
-
-ClientFactory defaultClientFactory = (c) => new Client(c);
-
-typedef MessageHandler(Map<WebSocket, Client> clients, WebSocket socket, dynamic msg);
-typedef Client ClientFactory(IrcConfig config);

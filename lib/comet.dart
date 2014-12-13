@@ -16,3 +16,4 @@ part 'socket.dart';
 part 'messages.dart';
 part 'http.dart';
 part 'session.dart';
+part 'session_manager.dart';

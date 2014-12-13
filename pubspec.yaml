@@ -1,0 +1,15 @@
+name: comet
+version: 0.0.1
+description: A web irc client and a proxy irc websocket server.
+environment:
+  sdk: '>=1.0.0 <2.0.0'
+dependencies:
+  args: '>=0.12.0 <0.13.0'
+  browser: any
+  irc:
+    git: git@github.com:DirectMyFile/irc.dart.git
+  quiver: any
+  shelf: '>=0.5.5 <0.6.0'
+  shelf_route: any
+  shelf_static: any
+  shelf_web_socket: any

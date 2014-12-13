@@ -5,10 +5,8 @@ class CometSocket {
   final WebSocket _socket;
   final SessionManager _sessionManager;
 
-  /// Create a new [CometSocket] for the given [WebSocket].
-  CometSocket(this._socket, this._sessionManager);
-
-  void _registerSocketEventHandlers() {
+  /// Listen to the [_socket] for messages.
+  CometSocket(this._socket, this._sessionManager) {
     // Set on connection event
     Session session;
     String user;

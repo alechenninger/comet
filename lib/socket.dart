@@ -33,6 +33,10 @@ class CometSocket {
           session.sendMessage(msg);
 
           break;
+        case MessageType.confirm:
+          session.confirmReceipt((msg as ConfirmMessage).receivedId);
+
+          break;
         default:
           _socket.add(new ErrorMessage("Unsupported message type, ${msg}"));
       }

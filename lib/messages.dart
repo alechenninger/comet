@@ -1,9 +1,12 @@
 part of comet;
 
 abstract class Message {
+  final String id;
+
   final Map _message;
 
-  Message(this._message) {
+  Message(this._message): id = new Uuid().v1() {
+    _message['id'] = id;
     _message['type'] = type;
   }
 
@@ -21,6 +24,8 @@ abstract class Message {
         return new SendMessage.fromMap(map);
       case MessageType.error:
         return new ErrorMessage.fromMap(map);
+      case MessageType.confirm:
+        return new ConfirmMessage.fromMap(map);
       default:
         throw new ArgumentError("Unrecognized message type: ${map['type']}");
     }
@@ -31,6 +36,18 @@ abstract class Message {
   }
 
   String get type;
+
+  bool operator ==(other) {
+    if (other is! Message) {
+      return false;
+    }
+
+    return other.id == id;
+  }
+
+  int hashCode() {
+    return _message.hashCode;
+  }
 
   String toString() {
     return JSON.encode(toJson());
@@ -122,6 +139,17 @@ class LoginSuccessMessage extends Message {
   bool get hasSession => _message['hasSession'];
 }
 
+class ConfirmMessage extends Message {
+  ConfirmMessage(String receivedId): super({
+    "receivedId": receivedId
+  });
+
+  ConfirmMessage.fromMap(Map map): super(map);
+
+  String get type => MessageType.confirm;
+  String get receivedId => _message['receivedId'];
+}
+
 class MessageType {
   static const String login = 'login';
   static const String loginSuccess = 'loginSuccess';
@@ -129,4 +157,5 @@ class MessageType {
   static const String send = 'send';
   static const String receive = 'receive';
   static const String error = 'error';
+  static const String confirm = 'confirm';
 }

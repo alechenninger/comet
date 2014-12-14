@@ -12,3 +12,4 @@ dependencies:
   shelf_route: any
   shelf_static: any
   shelf_web_socket: any
+  uuid: any

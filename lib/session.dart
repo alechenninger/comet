@@ -33,8 +33,8 @@ class Session {
   }
 
   /// Removes the message from the delivery queue
-  void confirmReceipt(Message msg) {
-    _received.remove(msg);
+  void confirmReceipt(String id) {
+    _received.removeWhere((m) => m.id == id);
   }
 
   /// Sets an event listener for all new events. Only one listener may be active

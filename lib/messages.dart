@@ -1,59 +1,93 @@
 part of comet;
 
-class Message {
-  final String _type;
-  final Map<String, Object> _body;
+abstract class Message {
+  final Map _fields;
 
-  Message(this._type, this._body);
-  Message.fromMap(Map<String, Object> map):
-    _type = map['type'],
-    _body = map['body'];
-  Message.fromJson(String json): this.fromMap(JSON.decode(json));
+  Message(this._fields);
 
-  String get type => _type;
-  Map<String, Object> get body => _body;
+  factory Message.fromMap(Map<String, Object> map) {
+    switch (map["type"]) {
+      case MessageType.send: return new SendMessage.fromMap(map);
+      case MessageType.connect: return new ConnectMessage.fromMap(map);
+      case MessageType.login: return new LoginMessage.fromMap(map);
+      case MessageType.send: return new SendMessage.fromMap(map);
+      default: throw new ArgumentError("Unrecognized message type: ${map['type']}");
+    }
+  }
+
+  factory Message.fromJson(String json) {
+    return new Message.fromMap(JSON.decode(json));
+  }
+
+  String get type;
 
   Map toJson() {
-    return {
-      "type": _type,
-      "body": body
-    };
+    return new Map.from(_fields)
+      ..['type'] = type;
   }
 }
 
+class ConnectMessage extends Message {
+  ConnectMessage(String host, int port, String username, String nickname,
+      String realname): super({
+        "host": host,
+        "port": port,
+        "username": username,
+        "nickname": nickname,
+        "realname": realname
+      });
+
+  ConnectMessage.fromMap(Map map): super(map);
+
+  String get type => MessageType.connect;
+  String get host => _fields['host'];
+  int get port => _fields['port'];
+  String get username => _fields['username'];
+  String get nickname => _fields['nickname'];
+  String get realname => _fields['realname'];
+}
+
 class SendMessage extends Message {
-  SendMessage(target, message): super(MessageType.send, {
+  SendMessage(String target, String message): super({
     "target": target,
     "message": message
   });
 
-  SendMessage.fromMap(Map<String, Object> map):
-    this(map['target'], map['message']);
+  SendMessage.fromMap(Map map): super(map);
 
-  SendMessage.fromJson(String json): this.fromMap(JSON.decode(json));
-
-  String get target => body["target"];
-  String get message => body["message"];
+  String get type => MessageType.send;
+  String get target => _fields['target'];
+  String get message => _fields['message'];
 }
 
 class ReceiveMessage extends Message {
-  ReceiveMessage(from, target, message): super(MessageType.receive, {
+  ReceiveMessage(from, target, message): super({
     "from": from,
     "target": target,
     "message": message
   });
 
-  ReceiveMessage.fromMap(Map<String, Object> map):
-    this(map['from'], map['target'], map['message']);
+  ReceiveMessage.fromMap(Map map): super(map);
 
-  ReceiveMessage.fromJson(String json): this.fromMap(JSON.decode(json));
+  String get type => MessageType.receive;
+  String get from => _fields["from"];
+  String get target => _fields["target"];
+  String get message => _fields["message"];
+}
 
-  String get from => body["from"];
-  String get target => body["target"];
-  String get message => body["message"];
+class LoginMessage extends Message {
+  LoginMessage(String username): super({
+    "username": username
+  });
+
+  LoginMessage.fromMap(Map map): super(map);
+
+  String get type => MessageType.login;
+  String get username => _fields['username'];
 }
 
 class MessageType {
+  static const String login = 'login';
   static const String connect = 'connect';
   static const String send = 'send';
   static const String receive = 'receive';

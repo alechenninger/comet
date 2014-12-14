@@ -17,20 +17,18 @@ class CometSocket {
 
       switch (msg.type) {
         case MessageType.connect:
-          var config = new IrcConfig.fromMap(msg.body);
+          var config = new IrcConfig.fromMap(msg.toJson());
           session = _sessionManager.newSession(config, user);
 
           session.listen((msg) => _socket.add(JSON.encode(msg)));
 
           break;
         case MessageType.send:
-          var sendMsg = new SendMessage.fromMap(msg.body);
-
-          session.sendMessage(sendMsg);
+          session.sendMessage(msg);
 
           break;
         default:
-          throw new ArgumentError("Unknown message type.");
+          throw new ArgumentError("Unsupported message type.");
       }
     });
   }

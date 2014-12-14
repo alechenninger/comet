@@ -14,23 +14,30 @@ class CometSocket {
       var msg = new Message.fromJson(data);
       stdout.writeln(data);
 
+      // TODO: Need a better way to manage preconditions
       switch (msg.type) {
         case MessageType.login:
           user = (msg as LoginMessage).username;
           session = _sessionManager[user];
 
-          _socket.add(new LoginSuccessMessage(session != null));
+          _reply(new LoginSuccessMessage(session != null));
 
           break;
         case MessageType.connect:
-          var config = new IrcConfig.fromMap(msg.toJson());
-          session = _sessionManager.newSession(config, user);
+          _errorIf(user == null, "Must login before connecting.",
+            otherwise: () {
+              var config = new IrcConfig.fromMap(msg.toJson());
+              session = _sessionManager.newSession(config, user);
 
-          session.listen((msg) => _socket.add(JSON.encode(msg)));
+              session.listen((msg) => _reply(msg));
+            });
 
           break;
         case MessageType.send:
-          session.sendMessage(msg);
+          _errorIf(session == null, "Must connect before sending a message.",
+              otherwise: () {
+                session.sendMessage(msg);
+              });
 
           break;
         case MessageType.confirm:
@@ -38,8 +45,27 @@ class CometSocket {
 
           break;
         default:
-          _socket.add(new ErrorMessage("Unsupported message type, ${msg}"));
+          _error("Unsupported message type, ${msg}");
       }
     });
   }
+
+  void _reply(Message msg) {
+    _socket.add(JSON.encode(msg));
+  }
+
+  void _errorIf(bool ifTrue, String description,
+                {void otherwise(): _doNothing}) {
+    if (ifTrue) {
+      _error(description);
+    } else {
+      otherwise();
+    }
+  }
+
+  void _error(String description) {
+    _reply(new ErrorMessage(description));
+  }
 }
+
+void _doNothing() {}

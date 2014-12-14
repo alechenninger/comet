@@ -26,6 +26,8 @@ abstract class Message {
         return new ErrorMessage.fromMap(map);
       case MessageType.confirm:
         return new ConfirmMessage.fromMap(map);
+      case MessageType.receive:
+        return new ReceiveMessage.fromMap(map);
       default:
         throw new ArgumentError("Unrecognized message type: ${map['type']}");
     }
@@ -45,9 +47,7 @@ abstract class Message {
     return other.id == id;
   }
 
-  int hashCode() {
-    return _message.hashCode;
-  }
+  int get hashCode => _message.hashCode;
 
   String toString() {
     return JSON.encode(toJson());

@@ -1,17 +1,28 @@
 part of comet;
 
 abstract class Message {
-  final Map _fields;
+  final Map _message;
 
-  Message(this._fields);
+  Message(this._message) {
+    _message['type'] = type;
+  }
 
   factory Message.fromMap(Map<String, Object> map) {
     switch (map["type"]) {
-      case MessageType.send: return new SendMessage.fromMap(map);
-      case MessageType.connect: return new ConnectMessage.fromMap(map);
-      case MessageType.login: return new LoginMessage.fromMap(map);
-      case MessageType.send: return new SendMessage.fromMap(map);
-      default: throw new ArgumentError("Unrecognized message type: ${map['type']}");
+      case MessageType.send:
+        return new SendMessage.fromMap(map);
+      case MessageType.connect:
+        return new ConnectMessage.fromMap(map);
+      case MessageType.login:
+        return new LoginMessage.fromMap(map);
+      case MessageType.loginSuccess:
+        return new LoginSuccessMessage.fromMap(map);
+      case MessageType.send:
+        return new SendMessage.fromMap(map);
+      case MessageType.error:
+        return new ErrorMessage.fromMap(map);
+      default:
+        throw new ArgumentError("Unrecognized message type: ${map['type']}");
     }
   }
 
@@ -21,9 +32,12 @@ abstract class Message {
 
   String get type;
 
+  String toString() {
+    return JSON.encode(toJson());
+  }
+
   Map toJson() {
-    return new Map.from(_fields)
-      ..['type'] = type;
+    return new Map.from(_message);
   }
 }
 
@@ -40,11 +54,11 @@ class ConnectMessage extends Message {
   ConnectMessage.fromMap(Map map): super(map);
 
   String get type => MessageType.connect;
-  String get host => _fields['host'];
-  int get port => _fields['port'];
-  String get username => _fields['username'];
-  String get nickname => _fields['nickname'];
-  String get realname => _fields['realname'];
+  String get host => _message['host'];
+  int get port => _message['port'];
+  String get username => _message['username'];
+  String get nickname => _message['nickname'];
+  String get realname => _message['realname'];
 }
 
 class SendMessage extends Message {
@@ -56,8 +70,8 @@ class SendMessage extends Message {
   SendMessage.fromMap(Map map): super(map);
 
   String get type => MessageType.send;
-  String get target => _fields['target'];
-  String get message => _fields['message'];
+  String get target => _message['target'];
+  String get message => _message['message'];
 }
 
 class ReceiveMessage extends Message {
@@ -70,9 +84,9 @@ class ReceiveMessage extends Message {
   ReceiveMessage.fromMap(Map map): super(map);
 
   String get type => MessageType.receive;
-  String get from => _fields["from"];
-  String get target => _fields["target"];
-  String get message => _fields["message"];
+  String get from => _message["from"];
+  String get target => _message["target"];
+  String get message => _message["message"];
 }
 
 class LoginMessage extends Message {
@@ -83,12 +97,36 @@ class LoginMessage extends Message {
   LoginMessage.fromMap(Map map): super(map);
 
   String get type => MessageType.login;
-  String get username => _fields['username'];
+  String get username => _message['username'];
+}
+
+class ErrorMessage extends Message {
+  ErrorMessage(String description): super({
+    "description": description
+  });
+
+  ErrorMessage.fromMap(Map map): super(map);
+
+  String get type => MessageType.error;
+  String get description => _message['description'];
+}
+
+class LoginSuccessMessage extends Message {
+  LoginSuccessMessage(bool hasSession): super({
+    "hasSession": hasSession
+  });
+
+  LoginSuccessMessage.fromMap(Map map): super(map);
+
+  String get type => MessageType.loginSuccess;
+  bool get hasSession => _message['hasSession'];
 }
 
 class MessageType {
   static const String login = 'login';
+  static const String loginSuccess = 'loginSuccess';
   static const String connect = 'connect';
   static const String send = 'send';
   static const String receive = 'receive';
+  static const String error = 'error';
 }

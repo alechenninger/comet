@@ -7,7 +7,7 @@ class SessionManager {
   SessionManager({ClientFactory clientFactory: defaultClientFactory}):
     _clientFactory = clientFactory;
 
-  bool sessionExists(String user) {
+  bool hasSession(String user) {
     return _sessions.containsKey(user);
   }
 

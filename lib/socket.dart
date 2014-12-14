@@ -7,7 +7,6 @@ class CometSocket {
 
   /// Listen to the [_socket] for messages.
   CometSocket(this._socket, this._sessionManager) {
-    // Set on connection event
     Session session;
     String user;
 
@@ -16,6 +15,13 @@ class CometSocket {
       stdout.writeln(data);
 
       switch (msg.type) {
+        case MessageType.login:
+          user = (msg as LoginMessage).username;
+          session = _sessionManager[user];
+
+          _socket.add(new LoginSuccessMessage(session != null));
+
+          break;
         case MessageType.connect:
           var config = new IrcConfig.fromMap(msg.toJson());
           session = _sessionManager.newSession(config, user);
@@ -28,7 +34,7 @@ class CometSocket {
 
           break;
         default:
-          throw new ArgumentError("Unsupported message type.");
+          _socket.add(new ErrorMessage("Unsupported message type, ${msg}"));
       }
     });
   }

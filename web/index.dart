@@ -6,8 +6,6 @@ import '../lib/comet.dart';
 void main() {
   WebSocket ws = new WebSocket("ws://${window.location.host}/ws");
 
-  var callback;
-
   void login() {
     ws.sendString(JSON.encode(new LoginMessage('comettest')));
   }

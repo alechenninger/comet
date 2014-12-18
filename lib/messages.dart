@@ -1,5 +1,9 @@
 part of comet;
 
+abstract class Processable {
+  void process(CometSocket server);
+}
+
 abstract class Message {
   final String id;
 
@@ -58,7 +62,7 @@ abstract class Message {
   }
 }
 
-class ConnectMessage extends Message {
+class ConnectMessage extends Message implements Processable {
   ConnectMessage(String host, int port, String username, String nickname,
       String realname): super({
         "host": host,
@@ -70,15 +74,29 @@ class ConnectMessage extends Message {
 
   ConnectMessage.fromMap(Map map): super(map);
 
+  @override
   String get type => MessageType.connect;
   String get host => _message['host'];
   int get port => _message['port'];
   String get username => _message['username'];
   String get nickname => _message['nickname'];
   String get realname => _message['realname'];
+
+  @override
+  void process(CometSocket socket) {
+    if (socket._user == null) {
+      socket.error("Must login before connecting.");
+      return;
+    }
+
+    var config = new IrcConfig.fromMap(toJson());
+    socket._session = socket._sessionManager.newSession(config, socket._user);
+
+    socket._session.listen((msg) => socket.reply(msg));
+  }
 }
 
-class SendMessage extends Message {
+class SendMessage extends Message implements Processable {
   SendMessage(String target, String message): super({
     "target": target,
     "message": message
@@ -86,9 +104,20 @@ class SendMessage extends Message {
 
   SendMessage.fromMap(Map map): super(map);
 
+  @override
   String get type => MessageType.send;
   String get target => _message['target'];
   String get message => _message['message'];
+
+  @override
+  void process(CometSocket socket) {
+    if (socket._session == null) {
+      socket.error("Must connect to an IRC server before sending a message.");
+      return;
+    }
+
+    socket._session.sendMessage(this);
+  }
 }
 
 class ReceiveMessage extends Message {
@@ -100,21 +129,30 @@ class ReceiveMessage extends Message {
 
   ReceiveMessage.fromMap(Map map): super(map);
 
+  @override
   String get type => MessageType.receive;
   String get from => _message["from"];
   String get target => _message["target"];
   String get message => _message["message"];
 }
 
-class LoginMessage extends Message {
+class LoginMessage extends Message implements Processable {
   LoginMessage(String username): super({
     "username": username
   });
 
   LoginMessage.fromMap(Map map): super(map);
 
+  @override
   String get type => MessageType.login;
   String get username => _message['username'];
+
+  @override
+  void process(CometSocket socket) {
+    socket._user = username;
+    socket._session = socket._sessionManager[username];
+    socket.reply(new LoginSuccessMessage(socket._session != null));
+  }
 }
 
 class ErrorMessage extends Message {
@@ -124,6 +162,7 @@ class ErrorMessage extends Message {
 
   ErrorMessage.fromMap(Map map): super(map);
 
+  @override
   String get type => MessageType.error;
   String get description => _message['description'];
 }
@@ -135,19 +174,26 @@ class LoginSuccessMessage extends Message {
 
   LoginSuccessMessage.fromMap(Map map): super(map);
 
+  @override
   String get type => MessageType.loginSuccess;
   bool get hasSession => _message['hasSession'];
 }
 
-class ConfirmMessage extends Message {
+class ConfirmMessage extends Message implements Processable {
   ConfirmMessage(String receivedId): super({
     "receivedId": receivedId
   });
 
   ConfirmMessage.fromMap(Map map): super(map);
 
+  @override
   String get type => MessageType.confirm;
   String get receivedId => _message['receivedId'];
+
+  @override
+  void process(CometSocket socket) {
+    socket._session.confirmReceipt(receivedId);
+  }
 }
 
 class MessageType {

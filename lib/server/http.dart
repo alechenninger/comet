@@ -1,4 +1,4 @@
-part of comet;
+part of comet.server;
 
 class CometHttp {
   final _address;

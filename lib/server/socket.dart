@@ -1,4 +1,4 @@
-part of comet;
+part of comet.server;
 
 class CometSocket {
   /// The websocket associated with the user

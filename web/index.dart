@@ -1,32 +1,19 @@
 import 'dart:html';
-import 'dart:convert';
 
-import '../lib/comet.dart';
+import '../lib/client.dart';
 
 void main() {
-  WebSocket ws = new WebSocket("ws://${window.location.host}/ws");
-
-  void login() {
-    ws.sendString(JSON.encode(new LoginMessage('comettest')));
-  }
-
-  void connect() {
-    ws.sendString(JSON.encode(new ConnectMessage("irc.freenode.net", 6667,
-        'comettest', 'comettest', 'Comet Test')));
-  }
-
-  ws.onMessage.listen((MessageEvent msgEvent) {
-    var msg = new Message.fromJson(msgEvent.data);
-
-    window.console.log(msg.toString());
-
-    if (msg is LoginSuccessMessage) {
-      connect();
+  CometClient.connect("ws://${window.location.host}/ws").then((client) {
+    return client.login("comettest");
+  }).then((client) {
+    if (!client.hasSession) {
+      return client.newConnection(freenode);
     }
-  });
-
-  ws.onOpen.listen((e) {
-    login();
+  }).then((client) {
+    client.messages.listen((msg) => window.console.log(msg));
   });
 
 }
+
+ConnectMessage freenode = new ConnectMessage("irc.freenode.net", 6667,
+        'comettest', 'comettest', 'Comet Test');

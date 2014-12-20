@@ -1,4 +1,4 @@
-part of comet;
+part of comet.common;
 
 abstract class Message {
   final String id;
@@ -16,12 +16,12 @@ abstract class Message {
         return new SendMessage.fromMap(map);
       case MessageType.connect:
         return new ConnectMessage.fromMap(map);
+      case MessageType.connectSuccess:
+        return new ConnectSuccessMessage();
       case MessageType.login:
         return new LoginMessage.fromMap(map);
       case MessageType.loginSuccess:
         return new LoginSuccessMessage.fromMap(map);
-      case MessageType.send:
-        return new SendMessage.fromMap(map);
       case MessageType.error:
         return new ErrorMessage.fromMap(map);
       case MessageType.confirm:

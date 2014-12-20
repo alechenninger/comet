@@ -1,4 +1,4 @@
-part of comet;
+part of comet.server;
 
 class SessionManager {
   final Map<String, Session> _sessions = new Map();

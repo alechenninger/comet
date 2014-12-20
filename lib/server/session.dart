@@ -1,4 +1,4 @@
-part of comet;
+part of comet.server;
 
 typedef void OnReceive(Message message);
 typedef Client ClientFactory(IrcConfig config);

@@ -5,47 +5,16 @@ class CometSocket {
   final WebSocket _socket;
   final SessionManager _sessionManager;
 
+  Session _session;
+  String _user;
+
   /// Listen to the [_socket] for messages.
   CometSocket(this._socket, this._sessionManager) {
-    Session session;
-    String user;
-
     _socket.listen((data) {
-      var msg = new Message.fromJson(data);
-      stdout.writeln(data);
+      var reply = _process(new Message.fromJson(data));
 
-      // TODO: Need a better way to manage preconditions
-      switch (msg.type) {
-        case MessageType.login:
-          user = (msg as LoginMessage).username;
-          session = _sessionManager[user];
-
-          _reply(new LoginSuccessMessage(session != null));
-
-          break;
-        case MessageType.connect:
-          _errorIf(user == null, "Must login before connecting.",
-            otherwise: () {
-              var config = new IrcConfig.fromMap(msg.toJson());
-              session = _sessionManager.newSession(config, user);
-
-              session.listen((msg) => _reply(msg));
-            });
-
-          break;
-        case MessageType.send:
-          _errorIf(session == null, "Must connect before sending a message.",
-              otherwise: () {
-                session.sendMessage(msg);
-              });
-
-          break;
-        case MessageType.confirm:
-          session.confirmReceipt((msg as ConfirmMessage).receivedId);
-
-          break;
-        default:
-          _error("Unsupported message type, ${msg}");
+      if (reply != null) {
+        _reply(reply);
       }
     });
   }
@@ -54,18 +23,46 @@ class CometSocket {
     _socket.add(JSON.encode(msg));
   }
 
-  void _errorIf(bool ifTrue, String description,
-                {void otherwise(): _doNothing}) {
-    if (ifTrue) {
-      _error(description);
-    } else {
-      otherwise();
-    }
-  }
+  /// If a [Message] is returned, it will be sent to the client. If it is null,
+  /// no message will be sent.
+  Message _process(Message msg) {
+    stdout.writeln(msg);
 
-  void _error(String description) {
-    _reply(new ErrorMessage(description));
+    switch (msg.type) {
+      case MessageType.login:
+        _user = (msg as LoginMessage).username;
+        _session = _sessionManager[_user];
+
+        return new LoginSuccessMessage(_session != null);
+
+      case MessageType.connect:
+        if(_user == null) {
+          return new ErrorMessage("Must login before connecting.");
+        }
+
+        var config = new IrcConfig.fromMap(msg.toJson());
+        _session = _sessionManager.newSession(config, _user);
+
+        _session.listen((msg) => _reply(msg));
+
+        break;
+
+      case MessageType.send:
+        if (_session == null) {
+          return new ErrorMessage("Must connect before sending a message.");
+        }
+
+        _session.sendMessage(msg);
+
+        break;
+      case MessageType.confirm:
+        _session.confirmReceipt((msg as ConfirmMessage).receivedId);
+
+        break;
+      default:
+       return new ErrorMessage("Unsupported message type, ${msg}");
+    }
+
+    return null;
   }
 }
-
-void _doNothing() {}

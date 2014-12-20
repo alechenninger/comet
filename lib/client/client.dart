@@ -58,7 +58,7 @@ class CometClient {
 
   /// Returns a reply [Message], an error [String], or null.
   dynamic _process(Message msg) {
-    html.window.console.log(msg);
+    html.window.console.log(msg.toString());
 
     switch (msg.type) {
       case MessageType.loginSuccess:
@@ -69,20 +69,20 @@ class CometClient {
         break;
       case MessageType.connectSuccess:
         if (_connect != null) {
-          _connect.complete();
+          _connect.complete(this);
         }
 
         break;
       case MessageType.receive:
         if (!isConnected) {
-          return "Receiving messages but not connected? ${msg}";
+          return "Receiving messages but not connected? ${msg.toString()}";
         }
 
         _messages.add(msg);
 
         return new ConfirmMessage(msg.id);
       default:
-        return "Unsupported message: ${msg}";
+        return "Unsupported message: ${msg.toString()}";
     }
 
     return null;

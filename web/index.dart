@@ -10,7 +10,7 @@ void main() {
       return client.newConnection(freenode);
     }
   }).then((client) {
-    client.messages.listen((msg) => window.console.log(msg));
+    client.messages.listen((msg) => window.console.log(msg.toString()));
   });
 
 }

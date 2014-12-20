@@ -63,6 +63,7 @@ class CometClient {
     switch (msg.type) {
       case MessageType.loginSuccess:
         if (_login != null) {
+          _hasSession = (msg as LoginSuccessMessage).hasSession;
           _login.complete(this);
         }
 

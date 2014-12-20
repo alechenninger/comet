@@ -17,10 +17,11 @@ class CometClient {
     _socket.onMessage.listen((event) {
       var reply = _process(new Message.fromJson(event.data));
 
-      if (reply != null) {
+      if (reply is Message) {
         _send(reply);
+      } else if (reply is String) {
+        html.window.console.error(reply);
       }
-
     });
   }
 
@@ -45,7 +46,8 @@ class CometClient {
     _socket.sendString(JSON.encode(msg));
   }
 
-  Message _process(Message msg) {
+  /// Returns a reply [Message], an error [String], or null.
+  dynamic _process(Message msg) {
     html.window.console.log(msg);
 
     switch (msg.type) {
@@ -63,13 +65,12 @@ class CometClient {
         break;
       case MessageType.receive:
         if (!isConnected) {
-          html.window.console.error("Receiving messages but not connected? " +
-              msg.toString());
+          return "Receiving messages but not connected? ${msg}";
         }
 
         return new ConfirmMessage(msg.id);
       default:
-        html.window.console.error("Unsupported message: ${msg}");
+        return "Unsupported message: ${msg}";
     }
 
     return null;

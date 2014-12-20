@@ -1,6 +1,6 @@
 import 'dart:html';
 
-import '../lib/client.dart';
+import 'package:comet/client.dart';
 
 void main() {
   CometClient.connect("ws://${window.location.host}/ws").then((client) {

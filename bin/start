@@ -1,4 +1,4 @@
 #!/bin/bash
 pub get
-pub build
+pub build --mode=debug
 dart bin/server.dart

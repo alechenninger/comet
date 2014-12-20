@@ -5,7 +5,7 @@ class CometSocket {
   final WebSocket _socket;
   final SessionManager _sessionManager;
 
-  Session _session;
+  Session __session;
   String _user;
 
   /// Listen to the [_socket] for messages.
@@ -14,12 +14,12 @@ class CometSocket {
       var reply = _process(new Message.fromJson(data));
 
       if (reply != null) {
-        _reply(reply);
+        _send(reply);
       }
     });
   }
 
-  void _reply(Message msg) {
+  void _send(Message msg) {
     _socket.add(JSON.encode(msg));
   }
 
@@ -31,9 +31,13 @@ class CometSocket {
     switch (msg.type) {
       case MessageType.login:
         _user = (msg as LoginMessage).username;
-        _session = _sessionManager[_user];
+        var hasSession = _sessionManager.hasSession(_user);
 
-        return new LoginSuccessMessage(_session != null);
+        if (hasSession) {
+          _session = _sessionManager[_user];
+        }
+
+        return new LoginSuccessMessage(hasSession);
 
       case MessageType.connect:
         if(_user == null) {
@@ -42,8 +46,6 @@ class CometSocket {
 
         var config = new IrcConfig.fromMap(msg.toJson());
         _session = _sessionManager.newSession(config, _user);
-
-        _session.listen((msg) => _reply(msg));
 
         break;
 
@@ -65,4 +67,11 @@ class CometSocket {
 
     return null;
   }
+
+  set _session(Session session) {
+    __session = session;
+    __session.listen((msg) => _send(msg));
+  }
+
+  Session get _session => __session;
 }

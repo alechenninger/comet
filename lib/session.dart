@@ -66,5 +66,8 @@ List _handlerFactories = [
      callback(new ReceiveMessage(event.from, event.target, event.message)),
 
  (callback) => (MOTDEvent event) =>
-     callback(new ReceiveMessage("server", "you", event.message))
+     callback(new ReceiveMessage("server", "you", event.message)),
+
+ (callback) => (ConnectEvent event) =>
+     callback(new ConnectSuccessMessage())
 ];

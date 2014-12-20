@@ -11,9 +11,11 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:html' as html;
 
 part 'socket.dart';
 part 'messages.dart';
 part 'http.dart';
 part 'session.dart';
 part 'session_manager.dart';
+part 'client.dart';

@@ -150,10 +150,18 @@ class ConfirmMessage extends Message {
   String get receivedId => _message['receivedId'];
 }
 
+class ConnectSuccessMessage extends Message {
+  ConnectSuccessMessage(): super({});
+
+  @override
+  String get type => MessageType.connectSuccess;
+}
+
 class MessageType {
   static const String login = 'login';
   static const String loginSuccess = 'loginSuccess';
   static const String connect = 'connect';
+  static const String connectSuccess = 'connectSuccess';
   static const String send = 'send';
   static const String receive = 'receive';
   static const String error = 'error';

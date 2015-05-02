@@ -52,6 +52,7 @@ class CometClient {
     return _hasSession;
   }
 
+  /// Send a message to the Comet web socket server.
   void _send(Message msg) {
     _socket.sendString(JSON.encode(msg));
   }

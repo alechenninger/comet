@@ -1,6 +1,8 @@
 part of comet.server;
 
 typedef void OnReceive(Message message);
+
+/// Creates an Irc [Client] for a given Irc [Configuration].
 typedef Client ClientFactory(Configuration config);
 
 defaultClientFactory(Configuration config) {

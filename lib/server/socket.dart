@@ -2,10 +2,10 @@ part of comet.server;
 
 class CometSocket {
   /// The websocket associated with the user
-  final WebSocket _socket;
+  final CompatibleWebSocket _socket;
   final SessionManager _sessionManager;
 
-  Session __session;
+  Session _session;
   String _user;
 
   /// Listen to the [_socket] for messages.
@@ -19,10 +19,13 @@ class CometSocket {
     });
   }
 
+  /// Sends a message to the client.
   void _send(Message msg) {
     _socket.add(JSON.encode(msg));
   }
 
+  /// Processes a message sent from the client.
+  ///
   /// If a [Message] is returned, it will be sent to the client. If it is null,
   /// no message will be sent.
   Message _process(Message msg) {
@@ -31,21 +34,22 @@ class CometSocket {
     switch (msg.type) {
       case MessageType.login:
         _user = (msg as LoginMessage).username;
+
         var hasSession = _sessionManager.hasSession(_user);
 
         if (hasSession) {
-          _session = _sessionManager[_user];
+          _useSession(_sessionManager[_user]);
         }
 
         return new LoginSuccessMessage(hasSession);
 
       case MessageType.connect:
-        if(_user == null) {
+        if (_user == null) {
           return new ErrorMessage("Must login before connecting.");
         }
 
-        var config = new IrcConfig.fromMap(msg.toJson());
-        _session = _sessionManager.newSession(config, _user);
+        var config = _getIrcConfiguration(msg as ConnectMessage);
+        _useSession(_sessionManager.newSession(config, _user));
 
         break;
 
@@ -62,16 +66,24 @@ class CometSocket {
 
         break;
       default:
-       return new ErrorMessage("Unsupported message type, ${msg}");
+        return new ErrorMessage("Unsupported message type, ${msg}");
     }
 
     return null;
   }
 
-  set _session(Session session) {
-    __session = session;
-    __session.listen((msg) => _send(msg));
+  /// Listens to a [Session] for messages, and forwards them to client.
+  void _useSession(Session session) {
+    _session = session;
+    _session.listen((msg) => _send(msg));
   }
 
-  Session get _session => __session;
+  static Configuration _getIrcConfiguration(ConnectMessage msg) {
+    return new Configuration(
+        host: msg.host,
+        port: msg.port,
+        nickname: msg.nickname,
+        username: msg.username,
+        realname: msg.realname);
+  }
 }

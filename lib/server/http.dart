@@ -4,13 +4,13 @@ class CometHttp {
   final _address;
   final _port;
   final _sessionManager;
-  final _fileSystemPath;
+  final _serveFilesFrom;
 
   /// [_address] follows the semantics of [HttpServer.bind], which is to say it
   /// may either be a [String] or an [InternetAddress].
   CometHttp(dynamic this._address, int this._port,
-      SessionManager this._sessionManager, {fileSystemPath: "build/web"}):
-        _fileSystemPath = fileSystemPath;
+      SessionManager this._sessionManager, {serveFilesFrom: "build/web"})
+      : _serveFilesFrom = serveFilesFrom;
 
   Future<HttpServer> serve() {
     return shelf_io.serve(_handler, _address, _port).then((server) {
@@ -21,12 +21,12 @@ class CometHttp {
   get _handler => const Pipeline()
       .addMiddleware(logRequests())
       .addHandler((router()
-          ..get("/ws", _ws)
-          ..add("/", ["GET"], _static, exactMatch: false)).handler);
+    ..get("/ws", _ws)
+    ..add("/", ["GET"], _static, exactMatch: false)).handler);
 
   // TODO: Should "build/web" be parameterized? AppEngine compatibility?
   get _static =>
-      createStaticHandler(_fileSystemPath, defaultDocument: "index.html");
+      createStaticHandler(_serveFilesFrom, defaultDocument: "index.html");
 
   get _ws =>
       webSocketHandler((socket) => new CometSocket(socket, _sessionManager));

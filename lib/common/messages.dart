@@ -1,12 +1,14 @@
 part of comet.common;
 
 abstract class Message {
-  final String id;
+  String get id => _message['id'];
+
+  String get type;
 
   final Map _message;
 
-  Message(this._message): id = new Uuid().v1() {
-    _message['id'] = id;
+  Message(this._message) {
+    _message.putIfAbsent('id', () => new Uuid().v1());
     _message['type'] = type;
   }
 
@@ -37,8 +39,6 @@ abstract class Message {
     return new Message.fromMap(JSON.decode(json));
   }
 
-  String get type;
-
   bool operator ==(other) {
     if (other is! Message) {
       return false;
@@ -59,8 +59,9 @@ abstract class Message {
 }
 
 class ConnectMessage extends Message {
-  ConnectMessage(String host, int port, String username, String nickname,
-      String realname): super({
+  ConnectMessage(
+      String host, int port, String username, String nickname, String realname)
+      : super({
         "host": host,
         "port": port,
         "username": username,
@@ -68,90 +69,91 @@ class ConnectMessage extends Message {
         "realname": realname
       });
 
-  ConnectMessage.fromMap(Map map): super(map);
+  ConnectMessage.fromMap(Map map) : super(map);
 
   String get type => MessageType.connect;
+
   String get host => _message['host'];
+
   int get port => _message['port'];
+
   String get username => _message['username'];
+
   String get nickname => _message['nickname'];
+
   String get realname => _message['realname'];
 }
 
 class SendMessage extends Message {
-  SendMessage(String target, String message): super({
-    "target": target,
-    "message": message
-  });
+  SendMessage(String target, String message)
+      : super({"target": target, "message": message});
 
-  SendMessage.fromMap(Map map): super(map);
+  SendMessage.fromMap(Map map) : super(map);
 
   String get type => MessageType.send;
+
   String get target => _message['target'];
+
   String get message => _message['message'];
 }
 
 class ReceiveMessage extends Message {
-  ReceiveMessage(from, target, message): super({
-    "from": from,
-    "target": target,
-    "message": message
-  });
+  ReceiveMessage(from, target, message)
+      : super({"from": from, "target": target, "message": message});
 
-  ReceiveMessage.fromMap(Map map): super(map);
+  ReceiveMessage.fromMap(Map map) : super(map);
 
   String get type => MessageType.receive;
+
   String get from => _message["from"];
+
   String get target => _message["target"];
+
   String get message => _message["message"];
 }
 
 class LoginMessage extends Message {
-  LoginMessage(String username): super({
-    "username": username
-  });
+  LoginMessage(String username) : super({"username": username});
 
-  LoginMessage.fromMap(Map map): super(map);
+  LoginMessage.fromMap(Map map) : super(map);
 
   String get type => MessageType.login;
+
   String get username => _message['username'];
 }
 
 class ErrorMessage extends Message {
-  ErrorMessage(String description): super({
-    "description": description
-  });
+  ErrorMessage(String description) : super({"description": description});
 
-  ErrorMessage.fromMap(Map map): super(map);
+  ErrorMessage.fromMap(Map map) : super(map);
 
   String get type => MessageType.error;
+
   String get description => _message['description'];
 }
 
 class LoginSuccessMessage extends Message {
-  LoginSuccessMessage(bool hasSession): super({
-    "hasSession": hasSession
-  });
+  LoginSuccessMessage(bool hasSession) : super({"hasSession": hasSession});
 
-  LoginSuccessMessage.fromMap(Map map): super(map);
+  LoginSuccessMessage.fromMap(Map map) : super(map);
 
   String get type => MessageType.loginSuccess;
+
   bool get hasSession => _message['hasSession'];
 }
 
 class ConfirmMessage extends Message {
-  ConfirmMessage(String receivedId): super({
-    "receivedId": receivedId
-  });
+  ConfirmMessage(String receivedId) : super({"receivedId": receivedId});
 
-  ConfirmMessage.fromMap(Map map): super(map);
+  ConfirmMessage.fromMap(Map map) : super(map);
 
   String get type => MessageType.confirm;
+
   String get receivedId => _message['receivedId'];
 }
 
 class ConnectSuccessMessage extends Message {
-  ConnectSuccessMessage(): super({});
+  ConnectSuccessMessage() : super({});
 
   @override
   String get type => MessageType.connectSuccess;

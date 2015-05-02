@@ -1,9 +1,9 @@
 part of comet.server;
 
 typedef void OnReceive(Message message);
-typedef Client ClientFactory(IrcConfig config);
+typedef Client ClientFactory(Configuration config);
 
-defaultClientFactory(IrcConfig config) {
+defaultClientFactory(Configuration config) {
   return new Client(config);
 }
 
@@ -21,13 +21,13 @@ class Session {
 
   OnReceive _onReceive = _noop;
 
-  Session(IrcConfig config,
-      {ClientFactory clientFactory: defaultClientFactory}):
-    _client = clientFactory(config) {
+  Session(Configuration config,
+      {ClientFactory clientFactory: defaultClientFactory})
+      : _client = clientFactory(config) {
 
     // Register handlers before connecting.
-    _handlerFactories.forEach(
-        (getHandler) => _client.register(getHandler(_receive)));
+    _handlerFactories
+        .forEach((getHandler) => _client.register(getHandler(_receive)));
 
     _client.connect();
   }
@@ -62,12 +62,9 @@ void _noop(event) {}
 /// List of handler factories. Each takes a callback and returns a handler
 /// function. A factory exists for each IRC event we deal with.
 List _handlerFactories = [
- (callback) => (MessageEvent event) =>
-     callback(new ReceiveMessage(event.from, event.target, event.message)),
-
- (callback) => (MOTDEvent event) =>
-     callback(new ReceiveMessage("server", "you", event.message)),
-
- (callback) => (ConnectEvent event) =>
-     callback(new ConnectSuccessMessage())
+  (callback) => (MessageEvent event) =>
+      callback(new ReceiveMessage(event.from, event.target, event.message)),
+  (callback) => (MOTDEvent event) =>
+      callback(new ReceiveMessage("server", "you", event.message)),
+  (callback) => (ConnectEvent event) => callback(new ConnectSuccessMessage())
 ];

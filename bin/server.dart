@@ -2,25 +2,24 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
-import '../lib/server.dart';
+import 'package:comet/server.dart';
 
 import 'dart:io';
 
-
 void main(List<String> args) {
   var parser = new ArgParser()
-      ..addOption('port', abbr: 'p', defaultsTo: '8080')
-      ..addOption('host', abbr: 'h', defaultsTo: 'localhost')
-      ..addOption('fileSystemPath', abbr: 'f', defaultsTo: 'build/web');
+    ..addOption('port', abbr: 'p', defaultsTo: '8080')
+    ..addOption('host', abbr: 'h', defaultsTo: 'localhost')
+    ..addOption('serveFilesFrom', abbr: 'f', defaultsTo: 'build/web');
 
-  var results = parser.parse(args);
+  var parsedArgs = parser.parse(args);
 
-  var host = results['host'];
-  var port = int.parse(results['port'], onError: logParseErrorAndQuit);
-  var fileSystemPath = results['fileSystemPath'];
+  var host = parsedArgs['host'];
+  var port = int.parse(parsedArgs['port'], onError: logParseErrorAndQuit);
+  var serveFilesFrom = parsedArgs['serveFilesFrom'];
   var sessionManager = new SessionManager();
 
-  new CometHttp(host, port, sessionManager, fileSystemPath: fileSystemPath)
+  new CometHttp(host, port, sessionManager, serveFilesFrom: serveFilesFrom)
       .serve();
 }
 

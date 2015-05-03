@@ -42,8 +42,8 @@ class CometClient {
 
   /// Not sure if this incorrectly returns true when login is completed with an
   /// error.
-  bool get isLoggedIn => _login.isCompleted;
-  bool get isConnected => _connect.isCompleted;
+  bool get isLoggedIn => _login != null && _login.isCompleted;
+  bool get isConnected => _hasSession || (_connect != null && _connect.isCompleted);
   bool get hasSession {
     if (!isLoggedIn) {
       throw new StateError("Log in first.");

@@ -44,7 +44,7 @@ class Session {
   /// communicated, and then any new events will be communicated in real time.
   void listen(OnReceive onEvent) {
     _onReceive = onEvent == null ? _noop : onEvent;
-    _received.forEach(_onReceive);
+    _received.forEach((e) => new Future(() => _onReceive(e)));
   }
 
   /// Sends a message to the IRC server.

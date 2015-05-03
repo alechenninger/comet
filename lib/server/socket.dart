@@ -21,6 +21,7 @@ class CometSocket {
 
   /// Sends a message to the client.
   void _send(Message msg) {
+    stdout.writeln("Out: $msg");
     _socket.add(JSON.encode(msg));
   }
 

@@ -39,6 +39,10 @@ abstract class Message {
     return new Message.fromMap(JSON.decode(json));
   }
 
+  factory Message.copyOf(Message msg) {
+    return new Message.fromMap(msg.toJson());
+  }
+
   bool operator ==(other) {
     if (other is! Message) {
       return false;
